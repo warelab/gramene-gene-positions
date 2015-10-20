@@ -1,0 +1,24 @@
+{
+  "name": "gramene-gene-positions",
+  "version": "1.0.0",
+  "description": "remap between genome, gene, transcript, and protein coordinates",
+  "main": "index.js",
+  "scripts": {
+    "test": "node node_modules/jasmine-node/lib/jasmine-node/cli.js spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:warelab/gramene-gene-positions.git"
+  },
+  "author": "ajo2995",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/warelab/gramene-gene-positions/issues"
+  },
+  "homepage": "https://github.com/warelab/gramene-gene-positions",
+  "devDependencies": {
+    "jasmine-node": "^1.14.5"
+  },
+  "dependencies": {
+  }
+}
