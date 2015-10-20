@@ -6,7 +6,7 @@ module.exports = {
   remap: function(gene, pos, source, dest) {
     var source_idx = levels.indexOf(source);
     var dest_idx = levels.indexOf(dest);
-    // invalid level or negative position supplied
+    // invalid level or position < 1 supplied
     if (source_idx === -1 || dest_idx === -1 || pos < 1) {
       return -1;
     }
