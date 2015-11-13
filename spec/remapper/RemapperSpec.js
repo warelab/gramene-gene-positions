@@ -55,7 +55,7 @@ describe('Remapper', function () {
   });
 
   it('should return -1 for genomic positions in introns', function() {
-    expect(remapper.remap(geneMinus,9100,'gene','transcript')).toEqual(-1);
+    expect(remapper.remap(geneMinus,9000,'gene','transcript')).toEqual(-1);
     expect(remapper.remap(genePlus,500,'gene','transcript')).toEqual(-1);
   });
 
@@ -88,5 +88,9 @@ describe('Remapper', function () {
   it('should remap the protein pos to genomic coord', function() {
     expect(remapper.remap(geneMinus,1,'protein','genome')).toEqual(25296714);
     expect(remapper.remap(genePlus,1,'protein','genome')).toEqual(13155518);
+  });
+
+  it('should remap gene level coordinates from the 2nd exon correctly', function() {
+    expect(remapper.remap(geneMinus,200,'gene','transcript')).toEqual(109);
   });
 });
