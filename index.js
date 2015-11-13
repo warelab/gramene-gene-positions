@@ -3,7 +3,7 @@
 var levels = ['genome','gene','transcript','protein'];
 
 module.exports = {
-  remap: function(gene, pos, source, dest) {
+  remap: function recursiveRemap(gene, pos, source, dest) {
     var source_idx = levels.indexOf(source);
     var dest_idx = levels.indexOf(dest);
     // invalid level or position < 1 supplied
@@ -12,24 +12,27 @@ module.exports = {
     }
     if (source === dest) { return pos; }
     var next_idx = (source_idx < dest_idx) ? source_idx + 1: source_idx - 1;
-    if (next_idx !== dest_idx) { // can't map to dest directly
+    if (next_idx === dest_idx) {
+      return calculatePos(gene, pos, source, dest);
+    } else { // can't map to dest directly
       var next = levels[next_idx];
-      return this.remap(gene,this.remap(gene,pos,source,next),next,dest);
-    }
-    else {
-      switch (source) {
-      case 'genome':
-        return genomeToGene(gene,pos);
-      case 'gene':
-        return (dest === 'genome') ? geneToGenome(gene,pos) : geneToTranscript(gene,pos);
-      case 'transcript':
-        return (dest === 'gene') ? transcriptToGene(gene,pos) : transcriptToProtein(gene,pos);
-      case 'protein':
-        return proteinToTranscript(gene,pos);
-      }
+      return this.remap(gene,calculatePos(gene,pos,source,next),next,dest);
     }
   }
 };
+
+function calculatePos(gene, pos, source, dest) {
+  switch (source) {
+    case 'genome':
+      return genomeToGene(gene,pos);
+    case 'gene':
+      return (dest === 'genome') ? geneToGenome(gene,pos) : geneToTranscript(gene,pos);
+    case 'transcript':
+      return (dest === 'gene') ? transcriptToGene(gene,pos) : transcriptToProtein(gene,pos);
+    case 'protein':
+      return proteinToTranscript(gene,pos);
+  }
+}
 
 function genomeToGene(gene, pos) {
   if (pos < gene.location.start || pos > gene.location.end) {
