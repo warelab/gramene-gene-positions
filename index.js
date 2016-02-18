@@ -3,7 +3,7 @@
 var levels = ['genome', 'gene', 'transcript', 'protein'];
 
 module.exports = {
-  remap: function recursiveRemap(gene, pos, source, dest) {
+  remap: function recursiveRemap(gene, pos, source, dest, transcript_id) {
     var source_idx = levels.indexOf(source);
     var dest_idx = levels.indexOf(dest);
     // invalid level or position < 1 supplied
@@ -15,24 +15,24 @@ module.exports = {
     }
     var next_idx = (source_idx < dest_idx) ? source_idx + 1 : source_idx - 1;
     if (next_idx === dest_idx) {
-      return calculatePos(gene, pos, source, dest);
+      return calculatePos(gene, pos, source, dest, transcript_id);
     } else { // can't map to dest directly
       var next = levels[next_idx];
-      return this.remap(gene, calculatePos(gene, pos, source, next), next, dest);
+      return this.remap(gene, calculatePos(gene, pos, source, next), next, dest, transcript_id);
     }
   }
 };
 
-function calculatePos(gene, pos, source, dest) {
+function calculatePos(gene, pos, source, dest, transcript_id) {
   switch (source) {
     case 'genome':
       return genomeToGene(gene, pos);
     case 'gene':
-      return (dest === 'genome') ? geneToGenome(gene, pos) : geneToTranscript(gene, pos);
+      return (dest === 'genome') ? geneToGenome(gene, pos) : geneToTranscript(gene, pos, transcript_id);
     case 'transcript':
-      return (dest === 'gene') ? transcriptToGene(gene, pos) : transcriptToProtein(gene, pos);
+      return (dest === 'gene') ? transcriptToGene(gene, pos, transcript_id) : transcriptToProtein(gene, pos, transcript_id);
     case 'protein':
-      return proteinToTranscript(gene, pos);
+      return proteinToTranscript(gene, pos, transcript_id);
   }
 }
 
@@ -58,11 +58,12 @@ function geneToGenome(gene, pos) {
   return gene.location.end - pos + 1;
 }
 
-function geneToTranscript(gene, pos) {
+function geneToTranscript(gene, pos, transcript_id) {
+  transcript_id = transcript_id || gene.gene_structure.canonical_transcript;
+  var exonIds = gene.gene_structure.transcripts[transcript_id].exons;
   var tpos = 0;
-//  gene.canonical_transcript.exons.forEach(function (exon) {
-  for (var i = 0; i < gene.canonical_transcript.exons.length; i++) {
-    var exon = gene.canonical_transcript.exons[i];
+  for (var i=0; i<exonIds.length; i++) {
+    var exon = gene.gene_structure.exons[exonIds[i]];
     if (pos >= exon.start && pos <= exon.end) {
       return tpos + pos - exon.start + 1;
     }
@@ -71,11 +72,12 @@ function geneToTranscript(gene, pos) {
   return -1; // gene pos not in the transcript
 }
 
-function transcriptToGene(gene, pos) {
+function transcriptToGene(gene, pos, transcript_id) {
+  transcript_id = transcript_id || gene.gene_structure.canonical_transcript;
+  var exonIds = gene.gene_structure.transcripts[transcript_id].exons;
   var pos_in_transcript = 0;
-
-  for (var i = 0; i < gene.canonical_transcript.exons.length; i++) {
-    var exon = gene.canonical_transcript.exons[i];
+  for (var i=0; i<exonIds.length; i++) {
+    var exon = gene.gene_structure.exons[exonIds[i]];
     pos_in_transcript += exon.end - exon.start + 1;
     if (pos <= pos_in_transcript) {
       return exon.end - (pos_in_transcript - pos);
@@ -84,23 +86,26 @@ function transcriptToGene(gene, pos) {
   return -1;
 }
 
-function transcriptToProtein(gene, pos) {
-  if (!gene.canonical_transcript.hasOwnProperty('CDS')) {
+function transcriptToProtein(gene, pos, transcript_id) {
+  transcript_id = transcript_id || gene.gene_structure.canonical_transcript;
+  if (!gene.gene_structure.transcripts[transcript_id].hasOwnProperty('cds')) {
     return -1; // no CDS
   }
-  if (pos > gene.canonical_transcript.CDS.end || pos < gene.canonical_transcript.CDS.start) {
+  var cds = gene.gene_structure.transcripts[transcript_id].cds;
+  if (pos > cds.end || pos < cds.start) {
     return -1; // pos not in CDS
   }
-  return Math.floor((pos - gene.canonical_transcript.CDS.start) / 3) + 1;
+  return Math.floor((pos - cds.start) / 3) + 1;
 }
 
-function proteinToTranscript(gene, pos) {
-  if (!gene.canonical_transcript.hasOwnProperty('CDS')) {
+function proteinToTranscript(gene, pos, transcript_id) {
+  transcript_id = transcript_id || gene.gene_structure.canonical_transcript;
+  if (!gene.gene_structure.transcripts[transcript_id].hasOwnProperty('cds')) {
     return -1; // no CDS
   }
-  var CDS = gene.canonical_transcript.CDS;
-  var tpos = 3 * (pos - 1) + CDS.start;
-  if (tpos > CDS.end || tpos < CDS.start) {
+  var cds = gene.gene_structure.transcripts[transcript_id].cds;
+  var tpos = 3 * (pos - 1) + cds.start;
+  if (tpos > cds.end || tpos < cds.start) {
     return -1; // position out of range of CDS
   }
   return tpos;

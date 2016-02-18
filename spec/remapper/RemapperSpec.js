@@ -60,29 +60,38 @@ describe('Remapper', function () {
   });
 
   it('should remap protein pos 1 to transcript CDS.start', function() {
-    expect(remapper.remap(geneMinus,1,'protein','transcript')).toEqual(geneMinus.canonical_transcript.CDS.start);
-    expect(remapper.remap(genePlus,1,'protein','transcript')).toEqual(genePlus.canonical_transcript.CDS.start);
+    var cdsMinus = geneMinus.gene_structure.transcripts[geneMinus.gene_structure.canonical_transcript].cds;
+    var cdsPlus = genePlus.gene_structure.transcripts[genePlus.gene_structure.canonical_transcript].cds;
+    expect(remapper.remap(geneMinus,1,'protein','transcript')).toEqual(cdsMinus.start);
+    expect(remapper.remap(genePlus,1,'protein','transcript')).toEqual(cdsPlus.start);
   });
 
   it('should remap protein pos 2 to transcript CDS.start + 3', function() {
-    expect(remapper.remap(geneMinus,2,'protein','transcript')).toEqual(geneMinus.canonical_transcript.CDS.start+3);
-    expect(remapper.remap(genePlus,2,'protein','transcript')).toEqual(genePlus.canonical_transcript.CDS.start+3);
+    var cdsMinus = geneMinus.gene_structure.transcripts[geneMinus.gene_structure.canonical_transcript].cds;
+    var cdsPlus = genePlus.gene_structure.transcripts[genePlus.gene_structure.canonical_transcript].cds;
+    expect(remapper.remap(geneMinus,2,'protein','transcript')).toEqual(cdsMinus.start+3);
+    expect(remapper.remap(genePlus,2,'protein','transcript')).toEqual(cdsPlus.start+3);
   });
 
   it('should remap transcript CDS.start to protein pos 1', function() {
-    expect(remapper.remap(geneMinus,geneMinus.canonical_transcript.CDS.start,'transcript','protein')).toEqual(1);
-    expect(remapper.remap(genePlus,genePlus.canonical_transcript.CDS.start,'transcript','protein')).toEqual(1);
+    var cdsMinus = geneMinus.gene_structure.transcripts[geneMinus.gene_structure.canonical_transcript].cds;
+    var cdsPlus = genePlus.gene_structure.transcripts[genePlus.gene_structure.canonical_transcript].cds;
+    expect(remapper.remap(geneMinus,cdsMinus.start,'transcript','protein')).toEqual(1);
+    expect(remapper.remap(genePlus,cdsPlus.start,'transcript','protein')).toEqual(1);
   });
   
   it('should remap transcript CDS.start+3 to protein pos 2', function() {
-    expect(remapper.remap(geneMinus,geneMinus.canonical_transcript.CDS.start+3,'transcript','protein')).toEqual(2);
-    expect(remapper.remap(genePlus,genePlus.canonical_transcript.CDS.start+3,'transcript','protein')).toEqual(2);
+    var cdsMinus = geneMinus.gene_structure.transcripts[geneMinus.gene_structure.canonical_transcript].cds;
+    var cdsPlus = genePlus.gene_structure.transcripts[genePlus.gene_structure.canonical_transcript].cds;
+    expect(remapper.remap(geneMinus,cdsMinus.start+3,'transcript','protein')).toEqual(2);
+    expect(remapper.remap(genePlus,cdsPlus.start+3,'transcript','protein')).toEqual(2);
   });
 
   it('should remap transcript to gene correctly', function() {
     expect(remapper.remap(geneMinus,1,'transcript','gene')).toEqual(1);
     expect(remapper.remap(genePlus,1,'transcript','gene')).toEqual(1);
-    expect(remapper.remap(geneMinus,geneMinus.canonical_transcript.CDS.start,'transcript','gene')).toEqual(224);
+    var cdsMinus = geneMinus.gene_structure.transcripts[geneMinus.gene_structure.canonical_transcript].cds;
+    expect(remapper.remap(geneMinus,cdsMinus.start,'transcript','gene')).toEqual(224);
   });
   
   it('should remap the protein pos to genomic coord', function() {
