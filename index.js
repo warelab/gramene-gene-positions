@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = require('lodash');
+
 var levels = ['genome', 'gene', 'transcript', 'protein'];
 
 module.exports = {
@@ -22,6 +24,15 @@ module.exports = {
     }
   }
 };
+
+function makeKeys(gene) {
+  if (!gene._transcripts) {
+    gene._transcripts = _.keyBy(gene.gene_structure.transcripts,'id');
+  }
+  if (!gene._exons) {
+    gene._exons = _.keyBy(gene.gene_structure.exons,'id');
+  }
+}
 
 function calculatePos(gene, pos, source, dest, transcript_id) {
   switch (source) {
@@ -59,11 +70,12 @@ function geneToGenome(gene, pos) {
 }
 
 function geneToTranscript(gene, pos, transcript_id) {
+  makeKeys(gene);
   transcript_id = transcript_id || gene.gene_structure.canonical_transcript;
-  var exonIds = gene.gene_structure.transcripts[transcript_id].exons;
+  var exonIds = gene._transcripts[transcript_id].exons;
   var tpos = 0;
   for (var i=0; i<exonIds.length; i++) {
-    var exon = gene.gene_structure.exons[exonIds[i]];
+    var exon = gene._exons[exonIds[i]];
     if (pos >= exon.start && pos <= exon.end) {
       return tpos + pos - exon.start + 1;
     }
@@ -73,11 +85,12 @@ function geneToTranscript(gene, pos, transcript_id) {
 }
 
 function transcriptToGene(gene, pos, transcript_id) {
+  makeKeys(gene);
   transcript_id = transcript_id || gene.gene_structure.canonical_transcript;
-  var exonIds = gene.gene_structure.transcripts[transcript_id].exons;
+  var exonIds = gene._transcripts[transcript_id].exons;
   var pos_in_transcript = 0;
   for (var i=0; i<exonIds.length; i++) {
-    var exon = gene.gene_structure.exons[exonIds[i]];
+    var exon = gene._exons[exonIds[i]];
     pos_in_transcript += exon.end - exon.start + 1;
     if (pos <= pos_in_transcript) {
       return exon.end - (pos_in_transcript - pos);
@@ -87,11 +100,12 @@ function transcriptToGene(gene, pos, transcript_id) {
 }
 
 function transcriptToProtein(gene, pos, transcript_id) {
+  makeKeys(gene);
   transcript_id = transcript_id || gene.gene_structure.canonical_transcript;
-  if (!gene.gene_structure.transcripts[transcript_id].hasOwnProperty('cds')) {
+  if (!gene._transcripts[transcript_id].hasOwnProperty('cds')) {
     return -1; // no CDS
   }
-  var cds = gene.gene_structure.transcripts[transcript_id].cds;
+  var cds = gene._transcripts[transcript_id].cds;
   if (pos > cds.end || pos < cds.start) {
     return -1; // pos not in CDS
   }
@@ -99,11 +113,12 @@ function transcriptToProtein(gene, pos, transcript_id) {
 }
 
 function proteinToTranscript(gene, pos, transcript_id) {
+  makeKeys(gene);
   transcript_id = transcript_id || gene.gene_structure.canonical_transcript;
-  if (!gene.gene_structure.transcripts[transcript_id].hasOwnProperty('cds')) {
+  if (!gene._transcripts[transcript_id].hasOwnProperty('cds')) {
     return -1; // no CDS
   }
-  var cds = gene.gene_structure.transcripts[transcript_id].cds;
+  var cds = gene._transcripts[transcript_id].cds;
   var tpos = 3 * (pos - 1) + cds.start;
   if (tpos > cds.end || tpos < cds.start) {
     return -1; // position out of range of CDS
