@@ -20,7 +20,7 @@ module.exports = {
       return calculatePos(gene, pos, source, dest, transcript_id);
     } else { // can't map to dest directly
       var next = levels[next_idx];
-      return this.remap(gene, calculatePos(gene, pos, source, next, transcript_id), next, dest, transcript_id);
+      return recursiveRemap(gene, calculatePos(gene, pos, source, next, transcript_id), next, dest, transcript_id);
     }
   }
 };
