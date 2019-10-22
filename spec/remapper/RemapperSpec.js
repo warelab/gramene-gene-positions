@@ -102,4 +102,24 @@ describe('Remapper', function () {
   it('should remap gene level coordinates from the 2nd exon correctly', function() {
     expect(remapper.remap(geneMinus,200,'gene','transcript')).toEqual(109);
   });
+
+  it('should remap transcript CDS.start+4 to protein pos 2 1/3', function() {
+    var cdsMinus = geneMinus.gene_structure.transcripts[0].cds;
+    var cdsPlus = genePlus.gene_structure.transcripts[0].cds;
+    var proteinMinus = remapper.remap(geneMinus,cdsMinus.start+4,'transcript','protein');
+    var proteinPlus = remapper.remap(genePlus,cdsPlus.start+4,'transcript','protein');
+    function round(x) {
+      return Math.floor(x*1000 + 0.5)/1000;
+    }
+    expect(round(proteinMinus)).toEqual(round(2+1/3));
+    expect(round(proteinPlus)).toEqual(round(2+1/3));
+  });
+
+  it('should remap protein pos 2.333 to transcript CDS.start+4', function() {
+    var cdsMinus = geneMinus.gene_structure.transcripts[0].cds;
+    var cdsPlus = genePlus.gene_structure.transcripts[0].cds;
+    expect(remapper.remap(geneMinus,2.333,'protein','transcript')).toEqual(cdsMinus.start+4);
+    expect(remapper.remap(genePlus,2.333,'protein','transcript')).toEqual(cdsPlus.start+4);
+  });
+
 });

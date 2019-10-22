@@ -109,7 +109,7 @@ function transcriptToProtein(gene, pos, transcript_id) {
   if (pos > cds.end || pos < cds.start) {
     return -1; // pos not in CDS
   }
-  return Math.floor((pos - cds.start) / 3) + 1;
+  return (pos - cds.start) / 3 + 1;
 }
 
 function proteinToTranscript(gene, pos, transcript_id) {
@@ -119,7 +119,7 @@ function proteinToTranscript(gene, pos, transcript_id) {
     return -1; // no CDS
   }
   var cds = gene._transcripts[transcript_id].cds;
-  var tpos = 3 * (pos - 1) + cds.start;
+  var tpos = Math.floor(3 * (pos - 1) + 0.5) + cds.start;
   if (tpos > cds.end || tpos < cds.start) {
     return -1; // position out of range of CDS
   }
