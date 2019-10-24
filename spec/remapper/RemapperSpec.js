@@ -121,5 +121,9 @@ describe('Remapper', function () {
     expect(remapper.remap(geneMinus,2.333,'protein','transcript')).toEqual(cdsMinus.start+4);
     expect(remapper.remap(genePlus,2.333,'protein','transcript')).toEqual(cdsPlus.start+4);
   });
-
+  it('should not modify the gene', function() {
+    var one = remapper.remap(genePlus,1,'gene','transcript');
+    expect(genePlus._transcripts).toBeUndefined();
+    expect(genePlus._exons).toBeUndefined();
+  })
 });

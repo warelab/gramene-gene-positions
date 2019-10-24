@@ -6,6 +6,7 @@ var levels = ['genome', 'gene', 'transcript', 'protein'];
 
 module.exports = {
   remap: function recursiveRemap(gene, pos, source, dest, transcript_id) {
+    var myGene = _.pick(gene,['location','gene_structure']);
     var source_idx = levels.indexOf(source);
     var dest_idx = levels.indexOf(dest);
     // invalid level or position < 1 supplied
@@ -17,10 +18,10 @@ module.exports = {
     }
     var next_idx = (source_idx < dest_idx) ? source_idx + 1 : source_idx - 1;
     if (next_idx === dest_idx) {
-      return calculatePos(gene, pos, source, dest, transcript_id);
+      return calculatePos(myGene, pos, source, dest, transcript_id);
     } else { // can't map to dest directly
       var next = levels[next_idx];
-      return recursiveRemap(gene, calculatePos(gene, pos, source, next, transcript_id), next, dest, transcript_id);
+      return recursiveRemap(myGene, calculatePos(myGene, pos, source, next, transcript_id), next, dest, transcript_id);
     }
   }
 };
@@ -48,6 +49,9 @@ function calculatePos(gene, pos, source, dest, transcript_id) {
 }
 
 function genomeToGene(gene, pos) {
+  if (!gene.location && gene.gene_structure.location) {
+    gene.location = gene.gene_structure.location;
+  }
   if (pos < gene.location.start || pos > gene.location.end) {
     return -1;
   }
@@ -60,6 +64,9 @@ function genomeToGene(gene, pos) {
 }
 
 function geneToGenome(gene, pos) {
+  if (!gene.location && gene.gene_structure.location) {
+    gene.location = gene.gene_structure.location;
+  }
   if (pos > (gene.location.end - gene.location.start + 1)) {
     return -1;
   }
