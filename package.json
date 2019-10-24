@@ -1,6 +1,6 @@
 {
   "name": "gramene-gene-positions",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "remap between genome, gene, transcript, and protein coordinates",
   "main": "index.js",
   "scripts": {
